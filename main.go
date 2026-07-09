@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -40,6 +41,8 @@ func (s ParcelService) Register(client int, address string) (Parcel, error) {
 
 	id, err := s.store.Add(parcel)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		return parcel, err
 	}
 
@@ -54,6 +57,8 @@ func (s ParcelService) Register(client int, address string) (Parcel, error) {
 func (s ParcelService) PrintClientParcels(client int) error {
 	parcels, err := s.store.GetByClient(client)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		return err
 	}
 
@@ -70,6 +75,8 @@ func (s ParcelService) PrintClientParcels(client int) error {
 func (s ParcelService) NextStatus(number int) error {
 	parcel, err := s.store.Get(number)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		return err
 	}
 
@@ -98,8 +105,14 @@ func (s ParcelService) Delete(number int) error {
 
 func main() {
 	// настройте подключение к БД
+	db, err := sql.Open("sqlite", "tracker.db")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer db.Close()
 
-	store := // создайте объект ParcelStore функцией NewParcelStore
+	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore
 	service := NewParcelService(store)
 
 	// регистрация посылки
@@ -107,6 +120,8 @@ func main() {
 	address := "Псков, д. Пушкина, ул. Колотушкина, д. 5"
 	p, err := service.Register(client, address)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -115,6 +130,8 @@ func main() {
 	newAddress := "Саратов, д. Верхние Зори, ул. Козлова, д. 25"
 	err = service.ChangeAddress(p.Number, newAddress)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -122,6 +139,8 @@ func main() {
 	// изменение статуса
 	err = service.NextStatus(p.Number)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -129,6 +148,8 @@ func main() {
 	// вывод посылок клиента
 	err = service.PrintClientParcels(client)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -136,6 +157,8 @@ func main() {
 	// попытка удаления отправленной посылки
 	err = service.Delete(p.Number)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -144,6 +167,8 @@ func main() {
 	// предыдущая посылка не должна удалиться, т.к. её статус НЕ «зарегистрирована»
 	err = service.PrintClientParcels(client)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -151,6 +176,8 @@ func main() {
 	// регистрация новой посылки
 	p, err = service.Register(client, address)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -158,6 +185,8 @@ func main() {
 	// удаление новой посылки
 	err = service.Delete(p.Number)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
@@ -166,6 +195,8 @@ func main() {
 	// здесь не должно быть последней посылки, т.к. она должна была успешно удалиться
 	err = service.PrintClientParcels(client)
 	if err != nil {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.Println(err)
 		fmt.Println(err)
 		return
 	}
