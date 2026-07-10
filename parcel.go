@@ -22,7 +22,6 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		sql.Named("address", p.Address),
 		sql.Named("created_at", p.CreatedAt))
 	if err != nil {
-		log.Println(err)
 		return -1, err
 	}
 	id, err := res.LastInsertId()
@@ -37,14 +36,13 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 func (s ParcelStore) Get(number int) (Parcel, error) {
 	// реализуйте чтение строки по заданному number
 	// здесь из таблицы должна вернуться только одна строка
-	res := s.db.QueryRow("SELECT number,client,status,address,created_at FROM parcel WHERE number = :number", sql.Named("number", number))
+	res := s.db.QueryRow("SELECT number,client,status,address,created_at FROM parcel WHERE number = :number",
+		sql.Named("number", number))
 
 	// заполните объект Parcel данными из таблицы
 	p := Parcel{}
 	err := res.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return Parcel{}, err
 	}
 
@@ -56,8 +54,6 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	// здесь из таблицы может вернуться несколько строк
 	rows, err := s.db.Query("SELECT * FROM parcel WHERE client = :client", sql.Named("client", client))
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -70,8 +66,6 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 
 		err := rows.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 		if err != nil {
-			log.SetFlags(log.LstdFlags | log.Lshortfile)
-			log.Println(err)
 			return nil, err
 		}
 
@@ -87,8 +81,6 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 		sql.Named("status", status),
 		sql.Named("number", number))
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return err
 	}
 	return nil
@@ -100,16 +92,11 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 
 	p, err := s.Get(number)
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return err
 	}
 
 	if p.Status != ParcelStatusRegistered {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
-		fmt.Errorf("Сменить адресс можно только у послыки в статусе %s: %v", ParcelStatusRegistered, err)
-		return err
+		return fmt.Errorf("Сменить адресс можно только у послыки в статусе %s: %v", ParcelStatusRegistered, err)
 	}
 
 	_, err = s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number and status = :status",
@@ -118,8 +105,6 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		sql.Named("status", ParcelStatusRegistered))
 
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return err
 	}
 	return nil
@@ -132,8 +117,6 @@ func (s ParcelStore) Delete(number int) error {
 		sql.Named("number", number),
 		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-		log.Println(err)
 		return err
 	}
 
