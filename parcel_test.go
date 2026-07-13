@@ -48,10 +48,11 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	percelStruct, err := store.Get(percelId)
 	assert.NoError(t, err)
-	assert.Equal(t, parcel.Client, percelStruct.Client)
-	assert.Equal(t, parcel.Status, parcel.Status)
-	assert.Equal(t, parcel.Address, percelStruct.Address)
-	assert.Equal(t, parcel.CreatedAt, percelStruct.CreatedAt)
+
+	//добавляем в тестовую посылку номер из БД
+	parcel.Number = percelStruct.Number
+
+	assert.Equal(t, parcel, percelStruct)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
